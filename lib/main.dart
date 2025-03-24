@@ -18,14 +18,18 @@ import 'package:women_app/screens/career/mentorship_screen.dart';
 import 'package:women_app/screens/health_wellness/health_wellness_screen.dart';
 
 import 'package:women_app/screens/career/webinars_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
 
   // ✅ Initialize Supabase
+
   await Supabase.initialize(
-    url: 'https://vohzpybcmnkvzdshqkuo.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvaHpweWJjbW5rdnpkc2hxa3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3MTA4NDMsImV4cCI6MjA1ODI4Njg0M30.0GqBOk4JOSSWvBGu-Uf6i6lWNWLVMEM5_K2c2xMumac',
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
   );
+
 
   runApp(MyApp());
 }
