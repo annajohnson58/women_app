@@ -39,17 +39,19 @@ class SupabaseService {
   }
 
   // ✅ Fetch Forum Posts
-  Stream<List<Map<String, dynamic>>> getPostsStream() {
+ Stream<List<Map<String, dynamic>>> getPostsStream() {
   return _client
-      .from('forum_posts')
-      .stream(primaryKey: ['id'])
-      .order('created_at', ascending: false);
+      .from('forumposts')
+      .stream(primaryKey: ['id']) // Ensure 'id' is the actual primary key in your Supabase table
+      .order('created_at', ascending: false)
+      .map((data) => List<Map<String, dynamic>>.from(data)); // Ensure correct type conversion
 }
+
 
 
   // ✅ Create a Post
   Future<void> createPost(String userId, String content, String category, int likes) async {
-  await _client.from('forum_posts').insert({
+  await _client.from('forumposts').insert({
     'userId': userId,
     'content': content,
     'category': category,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/supabase_service.dart';
 
@@ -12,10 +13,9 @@ class ForumScreen extends StatefulWidget {
 class ForumScreenState extends State<ForumScreen> {
   final SupabaseService _supabaseService = SupabaseService();
   final TextEditingController _postController = TextEditingController();
-  final TextEditingController _commentController = TextEditingController();
+  User? _currentUser;
   String? _selectedCategory = 'All';
   String? _searchQuery;
-  User? _currentUser;
 
   final List<String> _categories = ['All', 'General', 'Tech', 'Health', 'Lifestyle'];
 
@@ -33,7 +33,9 @@ class ForumScreenState extends State<ForumScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Community Forum')),
+      backgroundColor: Colors.grey[200], // Light background
+      appBar: _buildAppBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(),
       body: Column(
         children: [
           _buildCategoryFilter(),
@@ -44,17 +46,58 @@ class ForumScreenState extends State<ForumScreen> {
     );
   }
 
+  PreferredSizeWidget _buildAppBar() {
+  return AppBar(
+    backgroundColor: Colors.white,
+    elevation: 0,
+    title: Text(
+      'Community Forum',
+      style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+    ),
+    centerTitle: true,
+    actions: [
+      IconButton(
+        icon: Icon(Icons.search, color: Colors.black),
+        onPressed: () {},
+      ),
+      IconButton(
+        icon: Icon(Icons.notifications_none, color: Colors.black),
+        onPressed: () {},
+      ),
+    ],
+  );
+}
+
+
+  Widget _buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.pinkAccent,
+      unselectedItemColor: Colors.grey,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
+        BottomNavigationBarItem(icon: Icon(Icons.security), label: 'Safety'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ],
+    );
+  }
+
   Widget _buildCategoryFilter() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: DropdownButton<String>(
         value: _selectedCategory,
         items: _categories.map((String category) {
-          return DropdownMenuItem<String>(value: category, child: Text(category));
+          return DropdownMenuItem<String>(
+            value: category,
+            child: Text(category, style: GoogleFonts.poppins(fontSize: 16)),
+          );
         }).toList(),
         onChanged: (String? newValue) {
           setState(() => _selectedCategory = newValue);
         },
+        isExpanded: true,
       ),
     );
   }
@@ -63,10 +106,14 @@ class ForumScreenState extends State<ForumScreen> {
     return StreamBuilder<List<Map<String, dynamic>>>(
   stream: _supabaseService.getPostsStream(),
   builder: (context, snapshot) {
-    if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-    if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (snapshot.hasError) {
+      return Center(child: Text('Error: ${snapshot.error}'));
+    }
+    final posts = snapshot.data ?? [];
 
-    final posts = snapshot.data!;
     return ListView.builder(
       padding: const EdgeInsets.all(8.0),
       itemCount: posts.length,
@@ -79,56 +126,33 @@ class ForumScreenState extends State<ForumScreen> {
 
   Widget _buildPostCard(dynamic post) {
     return Card(
+      margin: EdgeInsets.symmetric(vertical: 10),
       elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        title: Text(post['content']),
-        subtitle: Text('Category: ${post['category']}'),
-        trailing: IconButton(
-          icon: const Icon(Icons.thumb_up),
-          onPressed: () {
-            if (_currentUser != null) {
-              _supabaseService.likePost(_currentUser!.id, post['id']);
-              setState(() {});
-            }
-          },
-        ),
-        onTap: () => _showCommentsDialog(post['id']),
-      ),
-    );
-  }
-
-  Future<void> _showCommentsDialog(String postId) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Comments'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FutureBuilder<List<dynamic>>(
-              future: _supabaseService.getComments(postId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) return const CircularProgressIndicator();
-                if (!snapshot.hasData || snapshot.data!.isEmpty) return const Text("No comments yet.");
-                return Column(children: snapshot.data!.map((comment) => Text(comment['content'])).toList());
-              },
+            Text(post['content'], style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Category: ${post['category']}", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                IconButton(
+                  icon: Icon(Icons.thumb_up, color: Colors.pinkAccent),
+                  onPressed: () {
+                    if (_currentUser != null) {
+                      _supabaseService.likePost(_currentUser!.id, post['id']);
+                      setState(() {});
+                    }
+                  },
+                ),
+              ],
             ),
-            TextField(controller: _commentController, decoration: const InputDecoration(hintText: 'Add a comment...')),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              if (_currentUser != null) {
-                _supabaseService.addComment(_currentUser!.id, postId, _commentController.text);
-                _commentController.clear();
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Post'),
-          ),
-        ],
       ),
     );
   }
@@ -143,31 +167,26 @@ class ForumScreenState extends State<ForumScreen> {
               controller: _postController,
               decoration: InputDecoration(
                 hintText: 'Write a post...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30.0)),
                 filled: true,
                 fillColor: Colors.white,
               ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.send, color: Colors.blueAccent),
-            onPressed: () async {
-  if (_currentUser != null) {
-    await _supabaseService.createPost(
-      _currentUser!.id,
-      _postController.text.trim(),
-      _selectedCategory ?? 'General',
-      0
-    );
-    _postController.clear();
-    setState(() {}); // 🔄 Force UI Refresh
-  } else {
-    print("⚠️ User not logged in! Cannot create post.");
-  }
-},
-
+            icon: Icon(Icons.send, color: Colors.pinkAccent),
+            onPressed: () {
+              if (_currentUser != null) {
+                _supabaseService.createPost(
+                  _currentUser!.id,
+                  _postController.text,
+                  _selectedCategory ?? 'General',
+                  0,
+                );
+                _postController.clear();
+                setState(() {}); // Refresh posts
+              }
+            },
           ),
         ],
       ),
