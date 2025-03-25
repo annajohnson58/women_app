@@ -176,4 +176,89 @@ class SupabaseService {
 
     return response; // Ensure it returns a valid list
   }
+  // ✅ Fetch user health logs
+  Future<List<Map<String, dynamic>>> getHealthData(String userId) async {
+    final response = await _client
+        .from('health_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', ascending: false);
+
+    return response;
+  }
+
+  // ✅ Save health data
+  Future<void> saveHealthData(
+      String userId, String mood, int steps, double sleepHours, int waterIntake) async {
+    await _client.from('health_logs').insert({
+      'user_id': userId,
+      'mood': mood,
+      'steps': steps,
+      'sleep_hours': sleepHours,
+      'water_intake': waterIntake,
+    });
+  }
+
+  // ✅ Fetch health tips based on user logs
+  Future<List<String>> getHealthTips(String userId) async {
+    final userLogs = await _client
+        .from('health_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', ascending: false)
+        .limit(1);
+
+    if (userLogs.isEmpty) return [];
+
+    final log = userLogs.first;
+    List<String> tips = [];
+
+    if (log['water_intake'] < 2000) {
+      final tip = await _client.from('health_tips').select('message').eq('condition', 'low_water').single();
+      tips.add(tip['message']);
+    }
+    if (log['sleep_hours'] < 6) {
+      final tip = await _client.from('health_tips').select('message').eq('condition', 'low_sleep').single();
+      tips.add(tip['message']);
+    }
+    if (log['steps'] < 5000) {
+      final tip = await _client.from('health_tips').select('message').eq('condition', 'low_steps').single();
+      tips.add(tip['message']);
+    }
+
+    return tips;
+  }
+  // ✅ Save Period Data
+  Future<void> savePeriodData(String userId, DateTime startDate, DateTime endDate, int cycleLength, List<String> symptoms, String mood, String notes) async {
+    await _client.from('period_tracking').insert({
+      'user_id': userId,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'cycle_length': cycleLength,
+      'symptoms': symptoms,
+      'mood': mood,
+      'notes': notes,
+    });
+  }
+
+  // ✅ Fetch User Period Data
+  Future<List<Map<String, dynamic>>> getPeriodData(String userId) async {
+    final response = await _client
+        .from('period_tracking')
+        .select('*')
+        .eq('user_id', userId)
+        .order('start_date', ascending: false);
+    return response;
+  }
+
+  // ✅ Predict Next Period Date
+  Future<DateTime> getNextPeriodDate(String userId) async {
+    final data = await getPeriodData(userId);
+    if (data.isNotEmpty) {
+      DateTime lastStartDate = DateTime.parse(data.first['start_date']);
+      int cycleLength = data.first['cycle_length'];
+      return lastStartDate.add(Duration(days: cycleLength));
+    }
+    return DateTime.now(); // Default to today if no data available
+  }
 }

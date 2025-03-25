@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'health_tips_screen.dart';
 import 'tracker_screen.dart';
 import 'workout_screen.dart';
 import 'diet_screen.dart';
 import 'mental_wellness_screen.dart';
-import 'telehealth_screen.dart';
+import 'period_tracker_screen.dart';
+import 'notification_settings_screen.dart';
 
 class HealthWellnessScreen extends StatelessWidget {
   const HealthWellnessScreen({super.key});
@@ -12,19 +12,32 @@ class HealthWellnessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Health & Wellness"), backgroundColor: Colors.pink),
+      appBar: AppBar(
+        title: Text("Health & Wellness"),
+        backgroundColor: Colors.pink,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationSettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: GridView.count(
         crossAxisCount: 2,
         padding: EdgeInsets.all(16),
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
         children: [
-          _buildFeatureCard(context, "Daily Health Tips", Icons.health_and_safety, HealthTipsScreen()),
           _buildFeatureCard(context, "Health Tracker", Icons.track_changes, TrackerScreen()),
           _buildFeatureCard(context, "Workouts & Yoga", Icons.fitness_center, WorkoutScreen()),
           _buildFeatureCard(context, "Diet & Nutrition", Icons.restaurant, DietScreen()),
           _buildFeatureCard(context, "Mental Wellness", Icons.self_improvement, MentalWellnessScreen()),
-          _buildFeatureCard(context, "Telehealth", Icons.medical_services, TelehealthScreen()),
+          _buildFeatureCard(context, "Period Tracker", Icons.calendar_today, PeriodTrackerScreen()),
         ],
       ),
     );
