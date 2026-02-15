@@ -1,20 +1,14 @@
-<<<<<<< HEAD
-# women_app
-=======
-# women_app
+# Women App (Flutter)
 
-A new Flutter project.
+## Overview
+This project is a mobile application built with **Flutter**, designed to empower women through digital access, community, and personalized tools. The app provides a safe, inclusive space where users can connect, learn, shop, and manage resources tailored to their needs. With a modern UI and cross‑platform support, it runs seamlessly on both Android and iOS.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> 954ab69 (Initial commit - Flutter Women App)
+## Features
+- **User Profiles**: Secure sign‑up/login with personalized dashboards.
+- **Community Hub**: Forums, discussions, and support groups for women.
+- **E‑Commerce Integration**: Browse and purchase products/services designed for women.
+- **Resource Library**: Articles, guides, and curated content for health, career, and lifestyle.
+- **Notifications**: Real‑time updates on orders, events, and community activity.
+- **Responsive UI**: Optimized for mobile screens with Flutter’s adaptive design.
